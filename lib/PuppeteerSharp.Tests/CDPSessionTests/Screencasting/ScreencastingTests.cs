@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using PuppeteerSharp.Nunit;
 
-namespace PuppeteerSharp.Tests.CDPSessionTests;
+namespace PuppeteerSharp.Tests.CDPSessionTests.Screencasting;
 
 sealed class ScreencastingTests : PuppeteerPageBaseTest
 {
