@@ -95,8 +95,8 @@ sealed class FFMpegVideoRecorder(IPage page)
                         throw new Exception($"[{Thread.CurrentThread.ManagedThreadId}] Timed out waiting for frame");
                     }
 
-                    Console.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] Waiting for frame...");
-                    Thread.Sleep(200);
+                    Console.WriteLine($"[{DateTime.Now}][{Thread.CurrentThread.ManagedThreadId}] Waiting for frame...");
+                    Thread.Sleep(500);
                 }
 
                 if (_done)
@@ -110,7 +110,7 @@ sealed class FFMpegVideoRecorder(IPage page)
 
         Console.WriteLine($"[{DateTime.Now}] Starting FFMPEG");
 
-        await FFMpegArguments
+        var ffMpeg = FFMpegArguments
             .FromPipeInput(new RawVideoPipeSource(CreateFrames()) { FrameRate = 30 })
             .OutputToFile(
                 _opts.Path,
@@ -123,11 +123,20 @@ sealed class FFMpegVideoRecorder(IPage page)
                         The idea is that it just fills frames with the last one until a new one arrives.
 
                         https://www.reddit.com/r/ffmpeg/comments/nf960l/fill_missing_video_frames/
+
+                        * FpsArgument did not work
+
                     */
-                    .WithVideoFilters(videoFilterOptions => videoFilterOptions.Arguments.Add(new FpsArgument("30"))))
+                    .WithVideoFilters(videoFilterOptions => videoFilterOptions.Arguments.Add(
+                        /* https://usercomp.com/news/1058757/ffmpeg-convert-vfr-to-cfr-without-timing-issues */
+                        new SetPtsArgument("PTS/1")))
+            )
             .WithLogLevel(FFMpegLogLevel.Verbose)
-            .NotifyOnProgress((t) => { Console.WriteLine($"Progress <{t}>"); })
-            .ProcessAsynchronously();
+            .NotifyOnProgress(percentage => { Console.WriteLine($"Progress <{percentage}>"); });
+
+        Console.WriteLine($"[{DateTime.Now}] ${ffMpeg.Arguments}");
+
+        await ffMpeg.ProcessAsynchronously();
 
         Console.WriteLine($"[{DateTime.Now}] FFMPEG finished");
     }
@@ -234,6 +243,12 @@ sealed class FFMpegVideoRecorder(IPage page)
 
         await _endTask;
     }
+}
+
+internal sealed class SetPtsArgument(string value) : IVideoFilterArgument
+{
+    public string Key => "setpts";
+    public string Value { get; } = value;
 }
 
 internal sealed class FpsArgument(string value) : IVideoFilterArgument
