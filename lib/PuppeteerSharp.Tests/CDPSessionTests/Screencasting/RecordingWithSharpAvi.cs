@@ -38,12 +38,6 @@ internal sealed class RecordingWithSharpAviTests : PuppeteerPageBaseTest
     }
 }
 
-sealed class VideoRecordingOptions
-{
-    public string Path { get; init; }
-    public Size Size { get; init; }
-}
-
 /*
 
     [Experiment] Uses SharpApi to record video instead of ffmpeg.
