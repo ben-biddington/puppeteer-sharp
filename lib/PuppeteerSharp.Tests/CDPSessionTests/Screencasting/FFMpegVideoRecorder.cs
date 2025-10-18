@@ -110,8 +110,11 @@ sealed class FFMpegVideoRecorder(IPage page)
 
         Console.WriteLine($"[{DateTime.Now}] Starting FFMPEG");
 
+        var inputFrameRate = 0.5;
+        var outputFrameRate = 30;
+
         var ffMpeg = FFMpegArguments
-            .FromPipeInput(new RawVideoPipeSource(CreateFrames()) { FrameRate = 30 })
+            .FromPipeInput(new RawVideoPipeSource(CreateFrames()) { FrameRate = inputFrameRate /* Show each frame for 5s <https://trac.ffmpeg.org/wiki/Slideshow> */})
             .OutputToFile(
                 _opts.Path,
                 true,
@@ -127,9 +130,19 @@ sealed class FFMpegVideoRecorder(IPage page)
                         * FpsArgument did not work
 
                     */
-                    .WithVideoFilters(videoFilterOptions => videoFilterOptions.Arguments.Add(
-                        /* https://usercomp.com/news/1058757/ffmpeg-convert-vfr-to-cfr-without-timing-issues */
-                        new SetPtsArgument("PTS/1")))
+                    .WithFramerate(outputFrameRate)
+                    /*
+                        Disable bitrate like?
+
+                        https://github.com/puppeteer/puppeteer/pull/11084/files#diff-a0ae5e9e96944abb96ac9f3754a1c07af35171a8276701273b76114872461850R122
+                    */
+                    //.WithVideoBitrate(0)
+                    .WithVideoFilters(videoFilterOptions =>
+                    {
+                        videoFilterOptions.Arguments.Add(
+                            /* https://usercomp.com/news/1058757/ffmpeg-convert-vfr-to-cfr-without-timing-issues */
+                            new SetPtsArgument("PTS/1"));
+                    })
             )
             .WithLogLevel(FFMpegLogLevel.Verbose)
             .NotifyOnProgress(percentage => { Console.WriteLine($"Progress <{percentage}>"); });
@@ -210,11 +223,13 @@ sealed class FFMpegVideoRecorder(IPage page)
     {
         var dir = Path.GetDirectoryName(_opts.Path);
 #pragma warning disable CA1416
-        var filename = Path.Combine(dir, $"{Guid.NewGuid()}.png");
+        var filename = Path.Combine(dir, $"{FrameFilename()}.png");
         bitmap.Save(filename);
         Console.WriteLine($"[{DateTime.Now:O}] Saved frame to {filename}");
 #pragma warning restore CA1416
     }
+
+    private static Guid FrameFilename() => Guid.NewGuid();
 
 #pragma warning disable CA1416
     private Bitmap ToBitmap(Bitmap pngImage)

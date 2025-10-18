@@ -14,6 +14,8 @@ internal sealed class RecordingWithFFMpegTests : PuppeteerPageBaseTest
 
         Experiment: based on https://pptr.dev/api/puppeteer.page.screencast
 
+        dotnet test ./lib/PuppeteerSharp.Tests --filter "RecordingWithFFMpegTests"
+
     */
     [Test, PuppeteerTest("Screencast.spec", "Page.startScreencast", "should write video to disk")]
     public async Task ShouldWriteVideoToDisk()
@@ -38,9 +40,9 @@ internal sealed class RecordingWithFFMpegTests : PuppeteerPageBaseTest
 
         Console.WriteLine(tempFile);
 
-        await Page.GoToAsync("https://rnz.co.nz");
-
-        await Task.Delay(TimeSpan.FromSeconds(10));
+        await Page.GoToAsync("https://www.rnz.co.nz");
+        await Page.GoToAsync("https://www.rnz.co.nz/news");
+        await Page.GoToAsync("https://www.rnz.co.nz/life/people/was-british-nurse-lucy-letby-wrongly-convicted-of-mass-murder-a-kiwi-filmmaker-believes-so");
 
         await recorder.StopAsync();
 
