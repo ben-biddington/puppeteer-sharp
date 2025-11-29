@@ -41,6 +41,9 @@ internal sealed class RecordingWithFFMpegTests : PuppeteerPageBaseTest
         Console.WriteLine(tempFile);
 
         await Page.GoToAsync("https://www.rnz.co.nz");
+        await Page.EvaluateFunctionAsync("() => window.scrollTo(0, 500)");
+        await Page.EvaluateFunctionAsync("() => window.scrollTo(0, 1000)");
+        await Page.EvaluateFunctionAsync("() => window.scrollTo(0, 2000)");
         await Page.GoToAsync("https://www.rnz.co.nz/news");
         await Page.GoToAsync("https://www.rnz.co.nz/life/people/was-british-nurse-lucy-letby-wrongly-convicted-of-mass-murder-a-kiwi-filmmaker-believes-so");
 

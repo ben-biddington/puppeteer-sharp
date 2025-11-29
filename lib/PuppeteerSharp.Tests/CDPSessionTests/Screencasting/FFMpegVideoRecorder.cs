@@ -111,7 +111,7 @@ sealed class FFMpegVideoRecorder(IPage page)
         Console.WriteLine($"[{DateTime.Now}] Starting FFMPEG");
 
         var inputFrameRate = 0.5;
-        var outputFrameRate = 30;
+        var outputFrameRate = 10;
 
         var ffMpeg = FFMpegArguments
             .FromPipeInput(new RawVideoPipeSource(CreateFrames()) { FrameRate = inputFrameRate /* Show each frame for 5s <https://trac.ffmpeg.org/wiki/Slideshow> */})
@@ -131,18 +131,18 @@ sealed class FFMpegVideoRecorder(IPage page)
 
                     */
                     .WithFramerate(outputFrameRate)
-                    /*
-                        Disable bitrate like?
+            /*
+                Disable bitrate like?
 
-                        https://github.com/puppeteer/puppeteer/pull/11084/files#diff-a0ae5e9e96944abb96ac9f3754a1c07af35171a8276701273b76114872461850R122
-                    */
-                    //.WithVideoBitrate(0)
-                    .WithVideoFilters(videoFilterOptions =>
-                    {
-                        videoFilterOptions.Arguments.Add(
-                            /* https://usercomp.com/news/1058757/ffmpeg-convert-vfr-to-cfr-without-timing-issues */
-                            new SetPtsArgument("PTS/1"));
-                    })
+                https://github.com/puppeteer/puppeteer/pull/11084/files#diff-a0ae5e9e96944abb96ac9f3754a1c07af35171a8276701273b76114872461850R122
+            */
+            //.WithVideoBitrate(0)
+            // .WithVideoFilters(videoFilterOptions =>
+            // {
+            //     videoFilterOptions.Arguments.Add(
+            //         /* https://usercomp.com/news/1058757/ffmpeg-convert-vfr-to-cfr-without-timing-issues */
+            //         new SetPtsArgument("PTS/1"));
+            // })
             )
             .WithLogLevel(FFMpegLogLevel.Verbose)
             .NotifyOnProgress(percentage => { Console.WriteLine($"Progress <{percentage}>"); });
@@ -195,10 +195,10 @@ sealed class FFMpegVideoRecorder(IPage page)
         // https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-screencastFrameAck
         await _client.SendAsync("Page.screencastFrameAck", new { SessionId = sessionId });
 
-        EnqueueFrame(bytes);
+        EnqueueFrame(bytes, size);
     }
 
-    private void EnqueueFrame(byte[] bytes)
+    private void EnqueueFrame(byte[] bytes, Size size)
     {
 #pragma warning disable CA1416
         using var ms = new MemoryStream(bytes);
@@ -206,7 +206,7 @@ sealed class FFMpegVideoRecorder(IPage page)
 
 #pragma warning disable CA2000
 
-        var bitmap = ToBitmap(png);
+        var bitmap = ToBitmap(png, size);
 
         // Yes, this is working, I can see the files and they look correct.
         Save(bitmap);
@@ -216,7 +216,7 @@ sealed class FFMpegVideoRecorder(IPage page)
         _frames.Enqueue(frame);
 #pragma warning restore CA2000
 #pragma warning restore CA1416
-        Console.WriteLine($"[{DateTime.Now:O}, {Thread.CurrentThread.ManagedThreadId}] Enqueued frame, there are now <{_frames.Count}> frames");
+        Console.WriteLine($"[{DateTime.Now:O}, {Thread.CurrentThread.ManagedThreadId}] Enqueued frame with size <{size.Width}x{size.Height}>, there are now <{_frames.Count}> frames");
     }
 
     private void Save(Bitmap bitmap)
@@ -232,13 +232,13 @@ sealed class FFMpegVideoRecorder(IPage page)
     private static Guid FrameFilename() => Guid.NewGuid();
 
 #pragma warning disable CA1416
-    private Bitmap ToBitmap(Bitmap pngImage)
+    private Bitmap ToBitmap(Bitmap pngImage, Size size)
     {
-        var bitmapImage = new Bitmap(pngImage.Width, pngImage.Height, PixelFormat.Format32bppArgb);
+        var bitmapImage = new Bitmap(size.Width, size.Height, PixelFormat.Format32bppArgb);
 
         using var graphics = Graphics.FromImage(bitmapImage);
 
-        graphics.DrawImage(pngImage, new Rectangle(0, 0, pngImage.Width, pngImage.Height));
+        graphics.DrawImage(pngImage, new Rectangle(0, 0, size.Width, size.Height));
 
         return bitmapImage;
     }
