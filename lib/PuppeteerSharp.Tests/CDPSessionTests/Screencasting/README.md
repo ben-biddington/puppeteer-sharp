@@ -37,6 +37,17 @@ index 5becc38d..320ac2c4 100644
 
 # Troubleshooting
 
+## File not found: ffmpeg.exe
+
+```shell
+Instances.Exceptions.InstanceFileNotFoundException : File not found: ffmpeg.exe
+  ----> System.ComponentModel.Win32Exception : An error occurred trying to start process 'ffmpeg.exe'
+```
+
+```shell
+choco install ffmpeg
+```
+
 ## ffmpeg exited with non-zero exit-code; Error during demuxing: Invalid argument
 
 ```shell
