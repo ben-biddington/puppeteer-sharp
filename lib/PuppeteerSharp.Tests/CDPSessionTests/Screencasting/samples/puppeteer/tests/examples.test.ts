@@ -1,4 +1,3 @@
-import assert from "node:assert";
 import { describe, it } from "node:test";
 
     import puppeteer from 'puppeteer';
@@ -6,6 +5,8 @@ import { describe, it } from "node:test";
 /*
 
     https://pptr.dev/api/puppeteer.page.screencast
+
+    npx tsx --test tests/examples.test.ts
 
 */
 describe("Screencasting with Puppeteer", () => {
@@ -17,7 +18,7 @@ describe("Screencasting with Puppeteer", () => {
 
     await page.goto("https://www.rnz.co.nz");
 
-    const recorder = await page.screencast({path: 'recording.webm'});
+    const recorder = await page.screencast({path: 'recording.mp4', format: 'mp4'});
 
     await page.goto("https://www.rnz.co.nz/news");
 
@@ -25,6 +26,4 @@ describe("Screencasting with Puppeteer", () => {
 
     browser.close();
   });
-
-  // TEST: Show how to print the full ffmpeg command line
 });

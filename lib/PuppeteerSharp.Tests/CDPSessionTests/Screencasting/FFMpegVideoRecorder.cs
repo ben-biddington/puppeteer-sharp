@@ -16,6 +16,12 @@ using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace PuppeteerSharp.Tests.CDPSessionTests.Screencasting;
 
+/*
+
+    https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ScreenRecorder.ts
+
+*/
+
 // ReSharper disable once InconsistentNaming
 sealed class FFMpegVideoRecorder(IPage page)
 {
@@ -131,6 +137,16 @@ sealed class FFMpegVideoRecorder(IPage page)
 
                     */
                     .WithFramerate(outputFrameRate)
+                    /*
+
+                        Copying from https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ScreenRecorder.ts
+
+                    */
+                    .WithArgument(new CustomArgument("-avioflags direct"))
+                    .WithArgument(new CustomArgument("-fpsprobesize 0"))
+                    .WithArgument(new CustomArgument("-probesize 32"))
+                    .WithArgument(new CustomArgument("-analyzeduration 0"))
+                    .WithArgument(new CustomArgument("-fflags nobuffer"))
             /*
                 Disable bitrate like?
 
@@ -144,7 +160,7 @@ sealed class FFMpegVideoRecorder(IPage page)
             //         new SetPtsArgument("PTS/1"));
             // })
             )
-            .WithLogLevel(FFMpegLogLevel.Verbose)
+            .WithLogLevel(FFMpegLogLevel.Debug)
             .NotifyOnProgress(percentage => { Console.WriteLine($"Progress <{percentage}>"); });
 
         Console.WriteLine($"[{DateTime.Now}] ${ffMpeg.Arguments}");
