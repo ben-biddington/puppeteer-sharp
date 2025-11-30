@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -47,6 +47,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove="TestExpectations\TestExpectations.json" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="CDPSessionTests\Screencasting\samples\puppeteer\" />
 	</ItemGroup>
   <PropertyGroup>
     <NoWarn>8002</NoWarn>
